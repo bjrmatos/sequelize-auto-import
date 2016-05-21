@@ -1,0 +1,39 @@
+{
+  "name": "sequelize-import-auto",
+  "version": "0.0.0",
+  "description": "Import sequelize models automagically",
+  "main": "src/index.js",
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "lint": "eslint src test",
+    "test": "mocha"
+  },
+  "homepage": "https://github.com/bjrmatos/sequelize-import-auto#readme",
+  "bugs": "https://github.com/bjrmatos/sequelize-import-auto/issues",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:bjrmatos/sequelize-import-auto.git"
+  },
+  "keywords": [
+    "sequelize",
+    "import",
+    "sequelize models"
+  ],
+  "author": "BJR Matos <bjrmatos@gmail.com> (https://github.com/bjrmatos)",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "3.5.0",
+    "eslint": "2.10.2",
+    "eslint-config-airbnb-base": "3.0.1",
+    "eslint-plugin-import": "1.8.0",
+    "mocha": "2.4.5",
+    "mysql": "2.10.2",
+    "sequelize": "3.23.2"
+  },
+  "dependencies": {
+    "object-assign": "4.1.0",
+    "snake-case": "1.1.2"
+  }
+}
