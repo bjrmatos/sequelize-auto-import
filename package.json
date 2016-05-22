@@ -1,6 +1,6 @@
 {
   "name": "sequelize-import-auto",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Import sequelize models automagically",
   "main": "src/index.js",
   "files": [
