@@ -10,11 +10,11 @@
     "lint": "eslint src test",
     "test": "mocha"
   },
-  "homepage": "https://github.com/bjrmatos/sequelize-import-auto#readme",
-  "bugs": "https://github.com/bjrmatos/sequelize-import-auto/issues",
+  "homepage": "https://github.com/bjrmatos/sequelize-auto-import#readme",
+  "bugs": "https://github.com/bjrmatos/sequelize-auto-import/issues",
   "repository": {
     "type": "git",
-    "url": "git@github.com:bjrmatos/sequelize-import-auto.git"
+    "url": "git@github.com:bjrmatos/sequelize-auto-import.git"
   },
   "keywords": [
     "sequelize",
