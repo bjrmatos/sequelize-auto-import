@@ -11,7 +11,7 @@ Installation
 ------------
 
 ```bash
-npm install sequelize-import
+npm install sequelize-auto-import
 ```
 
 Usage
