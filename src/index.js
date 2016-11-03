@@ -102,6 +102,10 @@ function readModelDirectory(sequelize, pathToModels, dir, modelsSpace, opts) {
           return;
         }
 
+        if(file !== 'schema'){
+          space[file] = {};
+        }
+
         readModelDirectory(sequelize, pathToModels, absolutePathToFile, modelsSpace, opts);
       } else if (stat.isFile()) {
         // only load js files
