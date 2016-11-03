@@ -151,7 +151,7 @@ function importModel(sequelize, schema, SEPARATOR, pureFileName, absolutePathToF
   var model = sequelize.import(pathFile, function(seqInstance, Datatypes) {
     return defineCall(seqInstance, Datatypes, {
       schema: schema,
-      schemaName: schema,
+      schemaName: schema || '',
       modelName: modelName,
       // for now pass the tableName in snake case,
       // when this module is on npm we should create an option
