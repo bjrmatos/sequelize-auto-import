@@ -48,7 +48,8 @@ module.exports = function importSequelizeModels(sequelizeInstance, modelsDir /* 
     {
       recursive: options.recursive,
       tableNameFormat: options.tableNameFormat,
-      exclude: options.exclude
+      exclude: options.exclude,
+      schemas: options.schemas
     }
   );
 
@@ -56,7 +57,8 @@ module.exports = function importSequelizeModels(sequelizeInstance, modelsDir /* 
   if (options.associate) {
     modelsSpace.loaded.forEach(function(currentModel) {
       if ('associate' in currentModel && typeof currentModel.associate === 'function') {
-        currentModel.associate(modelsSpace.space);
+        var schemaModels = currentModel.$schema ? modelsSpace.space[currentModel.$schema] : modelsSpace.space;
+        currentModel.associate(modelsSpace.space, schemaModels);
       }
     });
   }
@@ -86,12 +88,9 @@ function readModelDirectory(sequelize, pathToModels, dir, modelsSpace, opts) {
       var absolutePathToFile = path.join(dir, file),
           stat = fs.statSync(absolutePathToFile),
           namespace = getNamespaceFromPath(pathToModels, absolutePathToFile, SEPARATOR),
-          namespaceObj = getNamespaceObject(space, namespace, SEPARATOR),
           pureFileName,
-          modelName,
           tableName,
-          defineCall,
-          model;
+          defineCall;
 
       if (stat.isDirectory()) {
         // ignore node_modules
@@ -103,7 +102,6 @@ function readModelDirectory(sequelize, pathToModels, dir, modelsSpace, opts) {
           return;
         }
 
-        namespaceObj[file] = {};
         readModelDirectory(sequelize, pathToModels, absolutePathToFile, modelsSpace, opts);
       } else if (stat.isFile()) {
         // only load js files
@@ -126,32 +124,60 @@ function readModelDirectory(sequelize, pathToModels, dir, modelsSpace, opts) {
           throw new Error('Invalid tableNameFormat option: ' + tableNameFormat);
         }
 
-        modelName = namespace ? namespace + SEPARATOR + pureFileName : pureFileName;
-        defineCall = require(absolutePathToFile); // eslint-disable-line global-require
-
-        // call sequelize.import with a custom function to be able to pass schema's name value
-        model = sequelize.import(absolutePathToFile, function(seqInstance, Datatypes) {
-          var hasNamespace = (namespace != null && namespace !== '');
-
-          return defineCall(seqInstance, Datatypes, {
-            schema: hasNamespace ? namespace : undefined,
-            schemaName: namespace,
-            modelName: modelName,
-            // for now pass the tableName in snake case,
-            // when this module is on npm we should create an option
-            // to control this behaviour
-            tableName: tableName,
-            completeTableName: hasNamespace ? namespace + SEPARATOR + tableName : tableName,
-            separator: SEPARATOR
-          });
-        });
-
-        loadedModels.push(model);
-        namespaceObj[pureFileName] = model;
+        loadModelBySchema(sequelize, namespace, SEPARATOR, pureFileName, absolutePathToFile, tableName, loadedModels, space, opts.schemas);
       }
     });
 
   return modelsSpace;
+}
+
+function importModel(sequelize, schema, SEPARATOR, pureFileName, absolutePathToFile, tableName, loadedModels, namespaceObj){
+  schema = schema || undefined;
+  var pathFile, modelName = "", completeTableName = "";
+  if(schema){
+    pathFile = path.join(path.dirname(absolutePathToFile), '..', schema, pureFileName + '.js');
+    modelName = schema + SEPARATOR;
+    completeTableName = schema + SEPARATOR;
+  }
+  else{
+    pathFile = absolutePathToFile;
+  }
+  modelName += pureFileName;
+  completeTableName += tableName;
+
+  var defineCall = require(absolutePathToFile); // eslint-disable-line global-require
+
+  // call sequelize.import with a custom function to be able to pass schema's name value
+  var model = sequelize.import(pathFile, function(seqInstance, Datatypes) {
+    return defineCall(seqInstance, Datatypes, {
+      schema: schema,
+      schemaName: schema,
+      modelName: modelName,
+      // for now pass the tableName in snake case,
+      // when this module is on npm we should create an option
+      // to control this behaviour
+      tableName: tableName,
+      completeTableName: completeTableName,
+      separator: SEPARATOR
+    });
+  });
+  loadedModels.push(model);
+  if(schema){
+    namespaceObj[schema] = namespaceObj[schema] || {};
+    namespaceObj[schema][pureFileName] = model;
+  }
+  else{
+    namespaceObj[pureFileName] = model;
+  }
+}
+
+function loadModelBySchema(sequelize, namespace, SEPARATOR, pureFileName, absolutePathToFile, tableName, loadedModels, namespaceObj, schemas){
+
+  var namespaces = namespace === 'schema' && schemas.length ? schemas : [namespace];
+
+  for (var index = 0; index < namespaces.length; index++) {
+    importModel(sequelize, namespaces[index], SEPARATOR, pureFileName, absolutePathToFile, tableName, loadedModels, namespaceObj);
+  }
 }
 
 function getNamespaceFromPath(pathToModels, pathToEvaluate, separator) {
@@ -177,21 +203,4 @@ function getNamespaceFromPath(pathToModels, pathToEvaluate, separator) {
   }
 
   return namespace;
-}
-
-function getNamespaceObject(namespaceContainer, namespace, separator) {
-  var namespaceObj = namespaceContainer,
-      nameParts;
-
-  if (namespace === '') {
-    return namespaceObj;
-  }
-
-  nameParts = namespace.split(separator);
-
-  nameParts.forEach(function(namePart) {
-    namespaceObj = namespaceObj[namePart];
-  });
-
-  return namespaceObj;
 }
