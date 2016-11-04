@@ -143,13 +143,18 @@ Also you can create a **schema** folder to create multiples schemas using the sa
 │   └── contact.js
 └── index.js
 ```
+
 And with the following configuration you can indicate the schemas:
+
 ```js
 var models = require('sequelize-auto-import')(sequelize, '/path/to/models', {
    schemas: ['company1', 'company2', 'company3']
 });
+
 ```
+
 And access the models in this way:
+
 ```js
 models.user
 models.company1.product
@@ -186,9 +191,12 @@ tableNameFormat: function(modelName) {
 }
 ```
 
+(for now we only support `snakeCase` as one of the available formats, open a PR if you want other formats)
+
 -	`exclude`: Array A list of files to ignore when importing
 
-(for now we only support `snakeCase` as one of the available formats, open a PR if you want other formats)
+- `schemas`: Array A list of schema names to append in all models inside the **schema** folder (Multi-Tenancy Support)
+
 
 Collaborators
 -------
