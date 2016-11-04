@@ -56,8 +56,10 @@ module.exports = function importSequelizeModels(sequelizeInstance, modelsDir /* 
   // if associate option is activated call the associate method in each model
   if (options.associate) {
     modelsSpace.loaded.forEach(function(currentModel) {
+      var schemaModels;
+
       if ('associate' in currentModel && typeof currentModel.associate === 'function') {
-        var schemaModels = currentModel.$schema ? modelsSpace.space[currentModel.$schema] : modelsSpace.space;
+        schemaModels = currentModel.$schema ? modelsSpace.space[currentModel.$schema] : modelsSpace.space;
         currentModel.associate(modelsSpace.space, schemaModels);
       }
     });
@@ -89,8 +91,7 @@ function readModelDirectory(sequelize, pathToModels, dir, modelsSpace, opts) {
           stat = fs.statSync(absolutePathToFile),
           namespace = getNamespaceFromPath(pathToModels, absolutePathToFile, SEPARATOR),
           pureFileName,
-          tableName,
-          defineCall;
+          tableName;
 
       if (stat.isDirectory()) {
         // ignore node_modules
@@ -102,7 +103,7 @@ function readModelDirectory(sequelize, pathToModels, dir, modelsSpace, opts) {
           return;
         }
 
-        if(file !== 'schema'){
+        if (file !== 'schema') {
           space[file] = {};
         }
 
@@ -128,31 +129,46 @@ function readModelDirectory(sequelize, pathToModels, dir, modelsSpace, opts) {
           throw new Error('Invalid tableNameFormat option: ' + tableNameFormat);
         }
 
-        loadModelBySchema(sequelize, namespace, SEPARATOR, pureFileName, absolutePathToFile, tableName, loadedModels, space, opts.schemas);
+        loadModelBySchema(
+          sequelize,
+          namespace,
+          SEPARATOR,
+          pureFileName,
+          absolutePathToFile,
+          tableName,
+          loadedModels,
+          space,
+          opts.schemas
+        );
       }
     });
 
   return modelsSpace;
 }
 
-function importModel(sequelize, schema, SEPARATOR, pureFileName, absolutePathToFile, tableName, loadedModels, namespaceObj){
-  schema = schema || undefined;
-  var pathFile, modelName = "", completeTableName = "";
-  if(schema){
+function importModel(sequelize, _schema, SEPARATOR, pureFileName, absolutePathToFile, tableName, loadedModels, namespaceObj) {
+  var schema = _schema || undefined,
+      pathFile,
+      modelName = '',
+      completeTableName = '',
+      defineCall,
+      model;
+
+  if (schema) {
     pathFile = path.join(path.dirname(absolutePathToFile), '..', schema, pureFileName + '.js');
     modelName = schema + SEPARATOR;
     completeTableName = schema + SEPARATOR;
-  }
-  else{
+  } else {
     pathFile = absolutePathToFile;
   }
+
   modelName += pureFileName;
   completeTableName += tableName;
 
-  var defineCall = require(absolutePathToFile); // eslint-disable-line global-require
+  defineCall = require(absolutePathToFile); // eslint-disable-line global-require
 
   // call sequelize.import with a custom function to be able to pass schema's name value
-  var model = sequelize.import(pathFile, function(seqInstance, Datatypes) {
+  model = sequelize.import(pathFile, function(seqInstance, Datatypes) {
     return defineCall(seqInstance, Datatypes, {
       schema: schema,
       schemaName: schema || '',
@@ -165,21 +181,32 @@ function importModel(sequelize, schema, SEPARATOR, pureFileName, absolutePathToF
       separator: SEPARATOR
     });
   });
+
   loadedModels.push(model);
-  if(schema){
-    namespaceObj[schema] = namespaceObj[schema] || {};
-    namespaceObj[schema][pureFileName] = model;
-  }
-  else{
-    namespaceObj[pureFileName] = model;
+
+  if (schema) {
+    namespaceObj[schema] = namespaceObj[schema] || {}; // eslint-disable-line no-param-reassign
+    namespaceObj[schema][pureFileName] = model; // eslint-disable-line no-param-reassign
+  } else {
+    namespaceObj[pureFileName] = model; // eslint-disable-line no-param-reassign
   }
 }
 
-function loadModelBySchema(sequelize, namespace, SEPARATOR, pureFileName, absolutePathToFile, tableName, loadedModels, namespaceObj, schemas){
+function loadModelBySchema(
+  sequelize,
+  namespace,
+  SEPARATOR,
+  pureFileName,
+  absolutePathToFile,
+  tableName,
+  loadedModels,
+  namespaceObj,
+  schemas
+) {
+  var namespaces = namespace === 'schema' && schemas.length ? schemas : [namespace],
+      index;
 
-  var namespaces = namespace === 'schema' && schemas.length ? schemas : [namespace];
-
-  for (var index = 0; index < namespaces.length; index++) {
+  for (index = 0; index < namespaces.length; index++) {
     importModel(sequelize, namespaces[index], SEPARATOR, pureFileName, absolutePathToFile, tableName, loadedModels, namespaceObj);
   }
 }
