@@ -130,6 +130,36 @@ Note that `sequelize-auto-import` will recursively search for `js` files inside 
 
 Optionally if your models have a `associate` method `sequelize-auto-import` will call it passing all the loaded models as a parameter, in that method you can define relations between your models if you want.
 
+Multi-Tenancy Support (Shared Database and Separate Schemas)
+---
+
+Also you can create a **schema** folder to create multiples schemas using the same models. For example:
+
+```js
+/path/to/models
+├── user.js
+├── schema
+│   ├── product.js
+│   └── contact.js
+└── index.js
+```
+And with the following configuration you can indicate the schemas:
+```js
+var models = require('sequelize-auto-import')(sequelize, '/path/to/models', {
+   schemas: ['company1', 'company2', 'company3']
+});
+```
+And access the models in this way:
+```js
+models.user
+models.company1.product
+models.company1.contact
+models.company2.product
+models.company2.contact
+models.company3.product
+models.company3.contact
+```
+
 API
 ---
 
@@ -159,6 +189,10 @@ tableNameFormat: function(modelName) {
 -	`exclude`: Array A list of files to ignore when importing
 
 (for now we only support `snakeCase` as one of the available formats, open a PR if you want other formats)
+
+Collaborators
+-------
+* [Juan David Nicholls Cardona](https://github.com/jdnichollsc)
 
 License
 -------
