@@ -237,4 +237,24 @@ describe('import models', function() {
     expect(models.Contact.getTableName()).to.be.equal('contact');
     expect(models.base.PersonWithSomething.getTableName().tableName).to.be.equal('personwithsomething');
   });
+
+  it('should import models with `schemas` option', function() {
+    var models = sequelizeAutoImport(sequelize, fixture('schemasModels'), {
+      schemas: ['company1', 'company2']
+    });
+
+    expect(Object.keys(models)).to.have.lengthOf(3);
+
+    expect(models).to.have.property('User', sequelize.models.User);
+    expect(models).to.have.deep.property('company1.Contact', sequelize.models['company1.Contact']);
+    expect(models).to.have.deep.property('company1.Product', sequelize.models['company1.Product']);
+    expect(models).to.have.deep.property('company2.Contact', sequelize.models['company2.Contact']);
+    expect(models).to.have.deep.property('company2.Product', sequelize.models['company2.Product']);
+
+    expect(models.User.getTableName()).to.be.equal('user');
+    expect(models.company1.Contact.getTableName().tableName).to.be.equal('contact');
+    expect(models.company1.Product.getTableName().tableName).to.be.equal('product');
+    expect(models.company2.Contact.getTableName().tableName).to.be.equal('contact');
+    expect(models.company2.Product.getTableName().tableName).to.be.equal('product');
+  });
 });
