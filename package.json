@@ -25,15 +25,15 @@
   "license": "MIT",
   "devDependencies": {
     "chai": "3.5.0",
-    "eslint": "2.10.2",
-    "eslint-config-airbnb-base": "3.0.1",
-    "eslint-plugin-import": "1.8.0",
-    "mocha": "2.4.5",
-    "mysql": "2.10.2",
-    "sequelize": "3.23.2"
+    "eslint": "3.12.0",
+    "eslint-config-airbnb-base": "10.0.1",
+    "eslint-plugin-import": "2.2.0",
+    "mocha": "3.2.0",
+    "mysql": "2.12.0",
+    "sequelize": "3.27.0"
   },
   "dependencies": {
     "object-assign": "4.1.0",
-    "snake-case": "1.1.2"
+    "snake-case": "2.1.0"
   }
 }
