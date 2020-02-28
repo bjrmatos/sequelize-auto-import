@@ -57,10 +57,16 @@ module.exports = function importSequelizeModels(sequelizeInstance, modelsDir /* 
   if (options.associate) {
     modelsSpace.loaded.forEach(function(currentModel) {
       var schemaModels;
+      var isMigration = currentModel.options &&
+                        currentModel.options.classMethods &&
+                        typeof currentModel.options.classMethods.associate === 'function';
 
       if ('associate' in currentModel && typeof currentModel.associate === 'function') {
         schemaModels = currentModel.$schema ? modelsSpace.space[currentModel.$schema] : modelsSpace.space;
         currentModel.associate(modelsSpace.space, schemaModels);
+      } else if (isMigration) {
+        schemaModels = currentModel.$schema ? modelsSpace.space[currentModel.$schema] : modelsSpace.space;
+        currentModel.options.classMethods.associate.bind(currentModel)(modelsSpace.space, schemaModels);
       }
     });
   }
